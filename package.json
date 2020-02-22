@@ -1,9 +1,8 @@
 {
-	"name": "react-image-crop-demo",
+	"name": "react-crop",
 	"version": "1.0.0",
-	"description": "A basic demo of react-image-crop. https://github.com/DominicTobias/react-image-crop",
-	"keywords": [],
 	"main": "src/index.js",
+	"homepage": "http://gonzalo10.github.io/crop-image/",
 	"dependencies": {
 		"clsx": "^1.0.4",
 		"prop-types": "^15.7.2",
@@ -20,7 +19,6 @@
 		"deploy": "gh-pages -d build",
 		"start": "react-scripts start",
 		"build": "react-scripts build",
-		"test": "react-scripts test --env=jsdom",
 		"eject": "react-scripts eject"
 	},
 	"browserslist": {
