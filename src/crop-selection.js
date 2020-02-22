@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import {
 	NorthPoint,
@@ -11,19 +11,67 @@ import {
 	SouthWestPoint,
 	CropSelectionWrapper,
 } from './styles';
+import { getClientPos, convertToPixelCrop } from './utils';
 
-export function createCropSelection(
+export const CreateCropSelection = ({
 	props,
 	getCropStyle,
-	cropSelectRef,
-	onCropAreaMouseDown
-) {
+	onCropAreaMouseDown,
+	handleChangeSelection,
+	getElementOffset,
+	mediaDimensions,
+	mouseDownOnCropArea,
+}) => {
+	const refContainer = useRef(null);
 	const { disabled, locked, ruleOfThirds } = props;
 	const style = getCropStyle();
 
+	onCropAreaMouseDown = e => {
+		const { crop, disabled } = props;
+		const { width, height } = mediaDimensions;
+		const pixelCrop = convertToPixelCrop(crop, width, height);
+
+		if (disabled) {
+			return;
+		}
+		e.preventDefault(); // Stop drag selection.
+
+		const clientPos = getClientPos(e);
+
+		const { ord } = e.target.dataset;
+		const xInversed = ord === 'nw' || ord === 'w' || ord === 'sw';
+		const yInversed = ord === 'nw' || ord === 'n' || ord === 'ne';
+
+		let cropOffset;
+
+		if (pixelCrop.aspect) {
+			cropOffset = getElementOffset(refContainer);
+		}
+
+		const evData = {
+			clientStartX: clientPos.x,
+			clientStartY: clientPos.y,
+			cropStartWidth: pixelCrop.width,
+			cropStartHeight: pixelCrop.height,
+			cropStartX: xInversed ? pixelCrop.x + pixelCrop.width : pixelCrop.x,
+			cropStartY: yInversed ? pixelCrop.y + pixelCrop.height : pixelCrop.y,
+			xInversed,
+			yInversed,
+			xCrossOver: xInversed,
+			yCrossOver: yInversed,
+			startXCrossOver: xInversed,
+			startYCrossOver: yInversed,
+			isResize: e.target.dataset.ord,
+			ord,
+			cropOffset,
+		};
+
+		handleChangeSelection(evData);
+	};
+
 	return (
 		<CropSelectionWrapper
-			ref={r => (cropSelectRef = r)}
+			ref={refContainer}
 			style={style}
 			onMouseDown={onCropAreaMouseDown}
 			onTouchStart={onCropAreaMouseDown}
@@ -53,4 +101,4 @@ export function createCropSelection(
 			)}
 		</CropSelectionWrapper>
 	);
-}
+};

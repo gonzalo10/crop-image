@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
 import { CropWrapper, CropImageWrapper } from './styles';
-
 import {
 	getClientPos,
 	clamp,
@@ -15,7 +14,7 @@ import {
 	crossOverCheck,
 	straightenYPath,
 } from './utils';
-import { createCropSelection } from './crop-selection';
+import { CreateCropSelection } from './crop-selection';
 
 let passiveSupported = false;
 
@@ -60,52 +59,13 @@ class ReactCrop extends PureComponent {
 			);
 	}
 
-	onCropAreaMouseDown = e => {
-		const { crop, disabled } = this.props;
-		const { width, height } = this.mediaDimensions;
-		const pixelCrop = convertToPixelCrop(crop, width, height);
-
-		if (disabled) {
-			return;
-		}
-		e.preventDefault(); // Stop drag selection.
-
-		const clientPos = getClientPos(e);
-
-		const { ord } = e.target.dataset;
-		const xInversed = ord === 'nw' || ord === 'w' || ord === 'sw';
-		const yInversed = ord === 'nw' || ord === 'n' || ord === 'ne';
-
-		let cropOffset;
-
-		if (pixelCrop.aspect) {
-			cropOffset = this.getElementOffset(this.cropSelectRef);
-		}
-
-		this.evData = {
-			clientStartX: clientPos.x,
-			clientStartY: clientPos.y,
-			cropStartWidth: pixelCrop.width,
-			cropStartHeight: pixelCrop.height,
-			cropStartX: xInversed ? pixelCrop.x + pixelCrop.width : pixelCrop.x,
-			cropStartY: yInversed ? pixelCrop.y + pixelCrop.height : pixelCrop.y,
-			xInversed,
-			yInversed,
-			xCrossOver: xInversed,
-			yCrossOver: yInversed,
-			startXCrossOver: xInversed,
-			startYCrossOver: yInversed,
-			isResize: e.target.dataset.ord,
-			ord,
-			cropOffset,
-		};
-
+	handleChangeSelection = evData => {
+		this.evData = evData;
 		this.mouseDownOnCropArea = true;
 		this.setState({ cropIsActive: true });
 	};
 
 	onComponentMouseDown = e => {
-		console.log('onComponentMouseDown');
 		const { crop, disabled, locked, keepSelection, onChange } = this.props;
 
 		// firstChild to get the wrapping div and not the image
@@ -414,20 +374,9 @@ class ReactCrop extends PureComponent {
 			onImageLoaded,
 		} = this.props;
 
-		const cropSelection = isCropValid(crop)
-			? createCropSelection(
-					this.props,
-					() => this.getCropStyle(),
-					this.cropSelectRef,
-					this.onCropAreaMouseDown
-			  )
-			: null;
-
 		return (
 			<CropWrapper
-				ref={n => {
-					this.componentRef = n;
-				}}
+				ref={n => (this.componentRef = n)}
 				className={'ReactCrop'}
 				style={style}
 				onMouseDown={this.onComponentMouseDown}
@@ -446,7 +395,17 @@ class ReactCrop extends PureComponent {
 					)}
 				</div>
 				{children}
-				{cropSelection}
+				{isCropValid(crop) && (
+					<CreateCropSelection
+						props={this.props}
+						getCropStyle={() => this.getCropStyle()}
+						onCropAreaMouseDown={this.onCropAreaMouseDown}
+						handleChangeSelection={this.handleChangeSelection}
+						getElementOffset={this.getElementOffset}
+						mediaDimensions={this.mediaDimensions}
+						mouseDownOnCropArea={this.mouseDownOnCropArea}
+					/>
+				)}
 			</CropWrapper>
 		);
 	}
