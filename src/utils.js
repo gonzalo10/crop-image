@@ -2,8 +2,6 @@ export const addEventListeners = (
 	document,
 	onDocMouseTouchMove,
 	onDocMouseTouchEnd,
-	componentRef,
-	onMediaLoaded,
 	options
 ) => {
 	document.addEventListener('mousemove', onDocMouseTouchMove, options);
@@ -11,21 +9,64 @@ export const addEventListeners = (
 	document.addEventListener('mouseup', onDocMouseTouchEnd, options);
 	document.addEventListener('touchend', onDocMouseTouchEnd, options);
 	document.addEventListener('touchcancel', onDocMouseTouchEnd, options);
-	componentRef.addEventListener('medialoaded', onMediaLoaded);
 };
 export const removeEventListeners = (
 	document,
 	onDocMouseTouchMove,
-	onDocMouseTouchEnd,
-	componentRef,
-	onMediaLoaded
+	onDocMouseTouchEnd
 ) => {
 	document.removeEventListener('mousemove', onDocMouseTouchMove);
 	document.removeEventListener('touchmove', onDocMouseTouchMove);
 	document.removeEventListener('mouseup', onDocMouseTouchEnd);
 	document.removeEventListener('touchend', onDocMouseTouchEnd);
 	document.removeEventListener('touchcancel', onDocMouseTouchEnd);
-	componentRef.removeEventListener('medialoaded', onMediaLoaded);
+};
+
+export const crossOverCheck = (evData, props) => {
+	const { minWidth, minHeight } = props;
+	if (
+		!minWidth &&
+		((!evData.xCrossOver &&
+			-Math.abs(evData.cropStartWidth) - evData.xDiff >= 0) ||
+			(evData.xCrossOver &&
+				-Math.abs(evData.cropStartWidth) - evData.xDiff <= 0))
+	) {
+		evData.xCrossOver = !evData.xCrossOver;
+	}
+
+	if (
+		!minHeight &&
+		((!evData.yCrossOver &&
+			-Math.abs(evData.cropStartHeight) - evData.yDiff >= 0) ||
+			(evData.yCrossOver &&
+				-Math.abs(evData.cropStartHeight) - evData.yDiff <= 0))
+	) {
+		evData.yCrossOver = !evData.yCrossOver;
+	}
+
+	const swapXOrd = evData.xCrossOver !== evData.startXCrossOver;
+	const swapYOrd = evData.yCrossOver !== evData.startYCrossOver;
+
+	evData.inversedXOrd = swapXOrd ? inverseOrd(evData.ord) : false;
+	evData.inversedYOrd = swapYOrd ? inverseOrd(evData.ord) : false;
+	return evData;
+};
+
+export const straightenYPath = (clientX, evData) => {
+	const { ord } = evData;
+	const { cropOffset, cropStartWidth, cropStartHeight } = evData;
+	let k;
+	let d;
+
+	if (ord === 'nw' || ord === 'se') {
+		k = cropStartHeight / cropStartWidth;
+		d = cropOffset.top - cropOffset.left * k;
+	} else {
+		k = -cropStartHeight / cropStartWidth;
+		d = cropOffset.top + (cropStartHeight - cropOffset.left * k);
+	}
+
+	return k * clientX + d;
 };
 
 export function getClientPos(e) {

@@ -1,19 +1,18 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import clsx from 'clsx';
 import styled from 'styled-components';
 
 import {
 	getClientPos,
 	clamp,
 	isCropValid,
-	inverseOrd,
 	convertToPercentCrop,
 	convertToPixelCrop,
-	resolveCrop,
 	containCrop,
 	addEventListeners,
 	removeEventListeners,
+	crossOverCheck,
+	straightenYPath,
 } from './utils';
 
 const CropSelectionWrapper = styled.div`
@@ -29,10 +28,15 @@ const CropSelectionWrapper = styled.div`
 	border-image-source: url('data:image/gif;base64,R0lGODlhCgAKAJECAAAAAP///////wAAACH/C05FVFNDQVBFMi4wAwEAAAAh/wtYTVAgRGF0YVhNUDw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OEI5RDc5MTFDNkE2MTFFM0JCMDZEODI2QTI4MzJBOTIiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OEI5RDc5MTBDNkE2MTFFM0JCMDZEODI2QTI4MzJBOTIiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuZGlkOjAyODAxMTc0MDcyMDY4MTE4MDgzQzNDMjA5MzREQ0ZDIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjAyODAxMTc0MDcyMDY4MTE4MDgzQzNDMjA5MzREQ0ZDIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Af/+/fz7+vn49/b19PPy8fDv7u3s6+rp6Ofm5eTj4uHg397d3Nva2djX1tXU09LR0M/OzczLysnIx8bFxMPCwcC/vr28u7q5uLe2tbSzsrGwr66trKuqqainpqWko6KhoJ+enZybmpmYl5aVlJOSkZCPjo2Mi4qJiIeGhYSDgoGAf359fHt6eXh3dnV0c3JxcG9ubWxramloZ2ZlZGNiYWBfXl1cW1pZWFdWVVRTUlFQT05NTEtKSUhHRkVEQ0JBQD8+PTw7Ojk4NzY1NDMyMTAvLi0sKyopKCcmJSQjIiEgHx4dHBsaGRgXFhUUExIREA8ODQwLCgkIBwYFBAMCAQAAIfkEBQoAAgAsAAAAAAoACgAAAhWEERkn7W3ei7KlagMWF/dKgYeyGAUAIfkEBQoAAgAsAAAAAAoACgAAAg+UYwLJ7RnQm7QmsCyVKhUAIfkEBQoAAgAsAAAAAAoACgAAAhCUYgLJHdiinNSAVfOEKoUCACH5BAUKAAIALAAAAAAKAAoAAAIRVISAdusPo3RAzYtjaMIaUQAAIfkEBQoAAgAsAAAAAAoACgAAAg+MDiem7Q8bSLFaG5il6xQAIfkEBQoAAgAsAAAAAAoACgAAAg+UYRLJ7QnQm7SmsCyVKhUAIfkEBQoAAgAsAAAAAAoACgAAAhCUYBLJDdiinNSEVfOEKoECACH5BAUKAAIALAAAAAAKAAoAAAIRFISBdusPo3RBzYsjaMIaUQAAOw==');
 	border-image-slice: 1;
 	border-image-repeat: repeat;
-	${props =>
-		props.circularCrop &&
-		`border-radius: 50%;
-	box-shadow: 0px 0px 1px 1px white, 0 0 0 9999em rgba(0, 0, 0, 0.5);`}
+`;
+
+const CropWrapper = styled.div`
+	position: relative;
+	cursor: crosshair;
+	overflow: hidden;
+	max-width: 100%;
+	display: block;
+	touch-action: manipulation;
 `;
 
 const CropImageWrapper = styled.img`
@@ -77,9 +81,7 @@ class ReactCrop extends PureComponent {
 			addEventListeners(
 				this.document,
 				this.onDocMouseMove,
-				this.onDocMouseTouchEnd,
-				this.componentRef,
-				this.onMediaLoaded,
+				this.onDocMouseEnd,
 				options
 			);
 		}
@@ -90,31 +92,11 @@ class ReactCrop extends PureComponent {
 			removeEventListeners(
 				this.document,
 				this.onDocMouseMove,
-				this.onDocMouseTouchEnd,
-				this.componentRef,
-				this.onMediaLoaded
+				this.onDocMouseEnd
 			);
 	}
 
-	componentDidUpdate(prevProps) {
-		//Dont know what this does
-		// const { onChange, onComplete, crop } = this.props;
-		// if (prevProps.crop !== crop && this.imageRef) {
-		// 	const { width, height } = this.imageRef;
-		// 	const crop = this.makeNewCrop();
-		// 	const resolvedCrop = resolveCrop(crop, width, height);
-		// 	if (crop !== resolvedCrop) {
-		// 		console.log('corp!==resolvedCrop');
-		// 		const pixelCrop = convertToPixelCrop(resolvedCrop, width, height);
-		// 		const percentCrop = convertToPercentCrop(resolvedCrop, width, height);
-		// 		onChange(pixelCrop, percentCrop);
-		// 		onComplete(pixelCrop, percentCrop);
-		// 	}
-		// }
-	}
-
 	onCropAreaMouseDown = e => {
-		// console.log('onCropAreaMouseDown');
 		const { crop, disabled } = this.props;
 		const { width, height } = this.mediaDimensions;
 		const pixelCrop = convertToPixelCrop(crop, width, height);
@@ -126,8 +108,6 @@ class ReactCrop extends PureComponent {
 
 		const clientPos = getClientPos(e);
 
-		// Focus for detecting keypress.
-		this.componentRef.focus({ preventScroll: true });
 		const { ord } = e.target.dataset;
 		const xInversed = ord === 'nw' || ord === 'w' || ord === 'sw';
 		const yInversed = ord === 'nw' || ord === 'n' || ord === 'ne';
@@ -174,9 +154,6 @@ class ReactCrop extends PureComponent {
 
 		const clientPos = getClientPos(e);
 
-		// Focus for detecting keypress.
-		this.componentRef.focus({ preventScroll: true });
-
 		const mediaOffset = this.getElementOffset(this.mediaWrapperRef);
 		const mouseXPosInImage = clientPos.x - mediaOffset.left;
 		const mouseYPosInImage = clientPos.y - mediaOffset.top;
@@ -220,7 +197,6 @@ class ReactCrop extends PureComponent {
 	};
 
 	onDocMouseMove = e => {
-		console.log('onDocMouseMove');
 		const { crop, disabled, onChange, onDragStart } = this.props;
 
 		if (disabled) return;
@@ -238,7 +214,7 @@ class ReactCrop extends PureComponent {
 		const clientPos = getClientPos(e);
 
 		if (evData.isResize && crop.aspect && evData.cropOffset) {
-			clientPos.y = this.straightenYPath(clientPos.x);
+			clientPos.y = straightenYPath(clientPos.x, this.evData);
 		}
 		evData.xDiff = clientPos.x - evData.clientStartX;
 		evData.yDiff = clientPos.y - evData.clientStartY;
@@ -257,7 +233,7 @@ class ReactCrop extends PureComponent {
 		}
 	};
 
-	onDocMouseTouchEnd = e => {
+	onDocMouseEnd = e => {
 		const { crop, disabled, onComplete, onDragEnd } = this.props;
 
 		if (disabled) {
@@ -279,41 +255,6 @@ class ReactCrop extends PureComponent {
 			this.setState({ cropIsActive: false, newCropIsBeingDrawn: false });
 		}
 	};
-
-	// When the image is loaded or when a custom component via `renderComponent` prop fires
-	// a custom "medialoaded" event.
-	createNewCrop() {
-		const { width, height } = this.mediaDimensions;
-		const crop = this.makeNewCrop();
-		const resolvedCrop = resolveCrop(crop, width, height);
-		const pixelCrop = convertToPixelCrop(resolvedCrop, width, height);
-		const percentCrop = convertToPercentCrop(resolvedCrop, width, height);
-		return { pixelCrop, percentCrop };
-	}
-
-	// Custom components (using `renderComponent`) should fire a custom event
-	// called "medialoaded" when they are loaded.
-	onMediaLoaded = () => {
-		const { onComplete, onChange } = this.props;
-		const { pixelCrop, percentCrop } = this.createNewCrop();
-		onChange(pixelCrop, percentCrop);
-		onComplete(pixelCrop, percentCrop);
-	};
-
-	// this is to create a cropArea as soon as so load the image
-	onImageLoad(image) {
-		const { onComplete, onChange, onImageLoaded } = this.props;
-
-		// Return false from onImageLoaded if you set the crop with setState in there as otherwise
-		// the subsequent onChange + onComplete will not have your updated crop.
-		const res = onImageLoaded(image);
-
-		if (res !== false) {
-			const { pixelCrop, percentCrop } = this.createNewCrop();
-			onChange(pixelCrop, percentCrop);
-			onComplete(pixelCrop, percentCrop);
-		}
-	}
 
 	get mediaDimensions() {
 		const { clientWidth, clientHeight } = this.mediaWrapperRef;
@@ -442,10 +383,8 @@ class ReactCrop extends PureComponent {
 			newX = nextCrop.x + (nextCrop.width - newSize.width);
 		}
 
+		// Allows to invert the selected area
 		if (evData.yCrossOver) {
-			// This not only removes the little "shake" when inverting at a diagonal, but for some
-			// reason y was way off at fast speeds moving sw->ne with fixed aspect only, I couldn't
-			// figure out why.
 			if (evData.lastYCrossover === false) {
 				newY = nextCrop.y - newSize.height;
 			} else {
@@ -483,27 +422,9 @@ class ReactCrop extends PureComponent {
 		}
 
 		evData.lastYCrossover = evData.yCrossOver;
-		this.crossOverCheck();
+		this.evData = crossOverCheck(this.evData, this.props);
 
 		return nextCrop;
-	}
-
-	straightenYPath(clientX) {
-		const { evData } = this;
-		const { ord } = evData;
-		const { cropOffset, cropStartWidth, cropStartHeight } = evData;
-		let k;
-		let d;
-
-		if (ord === 'nw' || ord === 'se') {
-			k = cropStartHeight / cropStartWidth;
-			d = cropOffset.top - cropOffset.left * k;
-		} else {
-			k = -cropStartHeight / cropStartWidth;
-			d = cropOffset.top + (cropStartHeight - cropOffset.left * k);
-		}
-
-		return k * clientX + d;
 	}
 
 	createCropSelection() {
@@ -536,7 +457,7 @@ class ReactCrop extends PureComponent {
 				)}
 				{ruleOfThirds && (
 					<React.Fragment>
-						<div className='ReactCrop__rule-of-thirds-hz' />
+						<div className='ReactCrop__rule-of-thirds-ht' />
 						<div className='ReactCrop__rule-of-thirds-vt' />
 					</React.Fragment>
 				)}
@@ -553,78 +474,28 @@ class ReactCrop extends PureComponent {
 			: convertToPercentCrop(crop, width, height);
 	}
 
-	crossOverCheck() {
-		const { evData } = this;
-		const { minWidth, minHeight } = this.props;
-
-		if (
-			!minWidth &&
-			((!evData.xCrossOver &&
-				-Math.abs(evData.cropStartWidth) - evData.xDiff >= 0) ||
-				(evData.xCrossOver &&
-					-Math.abs(evData.cropStartWidth) - evData.xDiff <= 0))
-		) {
-			evData.xCrossOver = !evData.xCrossOver;
-		}
-
-		if (
-			!minHeight &&
-			((!evData.yCrossOver &&
-				-Math.abs(evData.cropStartHeight) - evData.yDiff >= 0) ||
-				(evData.yCrossOver &&
-					-Math.abs(evData.cropStartHeight) - evData.yDiff <= 0))
-		) {
-			evData.yCrossOver = !evData.yCrossOver;
-		}
-
-		const swapXOrd = evData.xCrossOver !== evData.startXCrossOver;
-		const swapYOrd = evData.yCrossOver !== evData.startYCrossOver;
-
-		evData.inversedXOrd = swapXOrd ? inverseOrd(evData.ord) : false;
-		evData.inversedYOrd = swapYOrd ? inverseOrd(evData.ord) : false;
-	}
-
 	render() {
 		const {
 			children,
-			className,
 			crossorigin,
 			crop,
-			disabled,
-			locked,
 			imageAlt,
 			onImageError,
 			renderComponent,
 			src,
 			style,
 			imageStyle,
-			ruleOfThirds,
+			onImageLoaded,
 		} = this.props;
 
-		const { cropIsActive, newCropIsBeingDrawn } = this.state;
-
-		const cropSelection =
-			isCropValid(crop) && this.componentRef
-				? this.createCropSelection()
-				: null;
-
-		const componentClasses = clsx('ReactCrop', className, {
-			'ReactCrop--active': cropIsActive,
-			'ReactCrop--disabled': disabled,
-			'ReactCrop--locked': locked,
-			'ReactCrop--new-crop': newCropIsBeingDrawn,
-			// In this case we have to shadow the image, since the box-shadow on the crop won't work.
-			'ReactCrop--crop-invisible':
-				crop && cropIsActive && (!crop.width || !crop.height),
-			'ReactCrop--rule-of-thirds': crop && ruleOfThirds,
-		});
+		const cropSelection = isCropValid(crop) ? this.createCropSelection() : null;
 
 		return (
-			<div
+			<CropWrapper
 				ref={n => {
 					this.componentRef = n;
 				}}
-				className={componentClasses}
+				className={'ReactCrop'}
 				style={style}
 				onMouseDown={this.onComponentMouseDown}
 				tabIndex='0'>
@@ -635,7 +506,7 @@ class ReactCrop extends PureComponent {
 							crossOrigin={crossorigin}
 							style={imageStyle}
 							src={src}
-							onLoad={e => this.onImageLoad(e.target)}
+							onLoad={onImageLoaded}
 							onError={onImageError}
 							alt={imageAlt}
 						/>
@@ -643,7 +514,7 @@ class ReactCrop extends PureComponent {
 				</div>
 				{children}
 				{cropSelection}
-			</div>
+			</CropWrapper>
 		);
 	}
 }

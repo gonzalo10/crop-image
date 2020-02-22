@@ -26,8 +26,8 @@ class App extends PureComponent {
 	};
 
 	// If you setState the crop in here you should return false.
-	onImageLoaded = image => {
-		this.imageRef = image;
+	onImageLoaded = e => {
+		this.imageRef = e.target;
 	};
 
 	onCropComplete = crop => {
