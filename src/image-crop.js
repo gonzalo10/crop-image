@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+
+import { CropWrapper, CropImageWrapper } from './styles';
 
 import {
 	getClientPos,
@@ -14,44 +15,7 @@ import {
 	crossOverCheck,
 	straightenYPath,
 } from './utils';
-
-const CropSelectionWrapper = styled.div`
-	position: absolute;
-	top: 0;
-	left: 0;
-	transform: translate3d(0, 0, 0);
-	box-sizing: border-box;
-	cursor: move;
-	box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
-	touch-action: manipulation;
-	border: 1px solid;
-	border-image-source: url('data:image/gif;base64,R0lGODlhCgAKAJECAAAAAP///////wAAACH/C05FVFNDQVBFMi4wAwEAAAAh/wtYTVAgRGF0YVhNUDw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OEI5RDc5MTFDNkE2MTFFM0JCMDZEODI2QTI4MzJBOTIiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OEI5RDc5MTBDNkE2MTFFM0JCMDZEODI2QTI4MzJBOTIiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuZGlkOjAyODAxMTc0MDcyMDY4MTE4MDgzQzNDMjA5MzREQ0ZDIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjAyODAxMTc0MDcyMDY4MTE4MDgzQzNDMjA5MzREQ0ZDIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Af/+/fz7+vn49/b19PPy8fDv7u3s6+rp6Ofm5eTj4uHg397d3Nva2djX1tXU09LR0M/OzczLysnIx8bFxMPCwcC/vr28u7q5uLe2tbSzsrGwr66trKuqqainpqWko6KhoJ+enZybmpmYl5aVlJOSkZCPjo2Mi4qJiIeGhYSDgoGAf359fHt6eXh3dnV0c3JxcG9ubWxramloZ2ZlZGNiYWBfXl1cW1pZWFdWVVRTUlFQT05NTEtKSUhHRkVEQ0JBQD8+PTw7Ojk4NzY1NDMyMTAvLi0sKyopKCcmJSQjIiEgHx4dHBsaGRgXFhUUExIREA8ODQwLCgkIBwYFBAMCAQAAIfkEBQoAAgAsAAAAAAoACgAAAhWEERkn7W3ei7KlagMWF/dKgYeyGAUAIfkEBQoAAgAsAAAAAAoACgAAAg+UYwLJ7RnQm7QmsCyVKhUAIfkEBQoAAgAsAAAAAAoACgAAAhCUYgLJHdiinNSAVfOEKoUCACH5BAUKAAIALAAAAAAKAAoAAAIRVISAdusPo3RAzYtjaMIaUQAAIfkEBQoAAgAsAAAAAAoACgAAAg+MDiem7Q8bSLFaG5il6xQAIfkEBQoAAgAsAAAAAAoACgAAAg+UYRLJ7QnQm7SmsCyVKhUAIfkEBQoAAgAsAAAAAAoACgAAAhCUYBLJDdiinNSEVfOEKoECACH5BAUKAAIALAAAAAAKAAoAAAIRFISBdusPo3RBzYsjaMIaUQAAOw==');
-	border-image-slice: 1;
-	border-image-repeat: repeat;
-`;
-
-const CropWrapper = styled.div`
-	position: relative;
-	cursor: crosshair;
-	overflow: hidden;
-	max-width: 100%;
-	display: block;
-	touch-action: manipulation;
-`;
-
-const CropImageWrapper = styled.img`
-	position: relative;
-	display: inline-block;
-	cursor: crosshair;
-	overflow: hidden;
-	max-width: 100%;
-	&:focus {
-		outline: none;
-	}
-	display: block;
-	max-width: 100%;
-	touch-action: manipulation;
-`;
+import { createCropSelection } from './crop-selection';
 
 let passiveSupported = false;
 
@@ -427,44 +391,6 @@ class ReactCrop extends PureComponent {
 		return nextCrop;
 	}
 
-	createCropSelection() {
-		const { disabled, locked, ruleOfThirds } = this.props;
-		const style = this.getCropStyle();
-
-		return (
-			<CropSelectionWrapper
-				ref={r => (this.cropSelectRef = r)}
-				style={style}
-				onMouseDown={this.onCropAreaMouseDown}
-				onTouchStart={this.onCropAreaMouseDown}
-				tabIndex='0'>
-				{!disabled && !locked && (
-					<div>
-						<div className='ReactCrop__drag-bar ord-n' data-ord='n' />
-						<div className='ReactCrop__drag-bar ord-e' data-ord='e' />
-						<div className='ReactCrop__drag-bar ord-s' data-ord='s' />
-						<div className='ReactCrop__drag-bar ord-w' data-ord='w' />
-
-						<div className='ReactCrop__drag-handle ord-nw' data-ord='nw' />
-						<div className='ReactCrop__drag-handle ord-n' data-ord='n' />
-						<div className='ReactCrop__drag-handle ord-ne' data-ord='ne' />
-						<div className='ReactCrop__drag-handle ord-e' data-ord='e' />
-						<div className='ReactCrop__drag-handle ord-se' data-ord='se' />
-						<div className='ReactCrop__drag-handle ord-s' data-ord='s' />
-						<div className='ReactCrop__drag-handle ord-sw' data-ord='sw' />
-						<div className='ReactCrop__drag-handle ord-w' data-ord='w' />
-					</div>
-				)}
-				{ruleOfThirds && (
-					<React.Fragment>
-						<div className='ReactCrop__rule-of-thirds-ht' />
-						<div className='ReactCrop__rule-of-thirds-vt' />
-					</React.Fragment>
-				)}
-			</CropSelectionWrapper>
-		);
-	}
-
 	makeNewCrop(unit = 'px') {
 		const crop = { ...ReactCrop.defaultCrop, ...this.props.crop };
 		const { width, height } = this.mediaDimensions;
@@ -488,7 +414,14 @@ class ReactCrop extends PureComponent {
 			onImageLoaded,
 		} = this.props;
 
-		const cropSelection = isCropValid(crop) ? this.createCropSelection() : null;
+		const cropSelection = isCropValid(crop)
+			? createCropSelection(
+					this.props,
+					() => this.getCropStyle(),
+					this.cropSelectRef,
+					this.onCropAreaMouseDown
+			  )
+			: null;
 
 		return (
 			<CropWrapper
