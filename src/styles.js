@@ -104,3 +104,35 @@ export const CropImageWrapper = styled.img`
 	max-width: 100%;
 	touch-action: manipulation;
 `;
+
+const DragBar = styled.div`
+	position: absolute;
+`;
+export const DragBarOrdN = styled(DragBar)`
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 6px;
+	margin-top: -3px;
+`;
+export const DragBarOrdE = styled(DragBar)`
+	right: 0;
+	top: 0;
+	width: 6px;
+	height: 100%;
+	margin-right: -3px;
+`;
+export const DragBarOrdS = styled(DragBar)`
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 6px;
+	margin-bottom: -3px;
+`;
+export const DragBarOrdW = styled(DragBar)`
+	top: 0;
+	left: 0;
+	width: 6px;
+	height: 100%;
+	margin-left: -3px;
+`;

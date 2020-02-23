@@ -1,3 +1,4 @@
+const PX = 'px';
 export const addEventListeners = (
 	document,
 	onDocMouseTouchMove,
@@ -128,15 +129,15 @@ export function convertToPercentCrop(crop, imageWidth, imageHeight) {
 
 export function convertToPixelCrop(crop, imageWidth, imageHeight) {
 	if (!crop.unit) {
-		return { ...crop, unit: 'px' };
+		return { ...crop, unit: PX };
 	}
 
-	if (crop.unit === 'px') {
+	if (crop.unit === PX) {
 		return crop;
 	}
 
 	return {
-		unit: 'px',
+		unit: PX,
 		aspect: crop.aspect,
 		x: (crop.x * imageWidth) / 100,
 		y: (crop.y * imageHeight) / 100,
@@ -156,7 +157,7 @@ export function resolveCrop(pixelCrop, imageWidth, imageHeight) {
 
 	if (widthOverflows && heightOverflows) {
 		fixedCrop = {
-			unit: 'px',
+			unit: PX,
 			x: 0,
 			y: 0,
 			width: imageWidth > pixelCrop.width ? pixelCrop.width : imageWidth,

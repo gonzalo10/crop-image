@@ -16,21 +16,6 @@ import {
 } from './utils';
 import { CreateCropSelection } from './crop-selection';
 
-let passiveSupported = false;
-
-try {
-	window.addEventListener(
-		'test',
-		null,
-		Object.defineProperty({}, 'passive', {
-			get: () => {
-				passiveSupported = true;
-				return true;
-			},
-		})
-	);
-} catch (err) {} // eslint-disable-line no-empty
-
 class ReactCrop extends PureComponent {
 	window = typeof window !== 'undefined' ? window : {};
 
@@ -40,7 +25,7 @@ class ReactCrop extends PureComponent {
 
 	componentDidMount() {
 		if (this.document.addEventListener) {
-			const options = passiveSupported ? { passive: false } : false;
+			const options = false;
 			addEventListeners(
 				this.document,
 				this.onDocMouseMove,
@@ -380,6 +365,7 @@ class ReactCrop extends PureComponent {
 				className={'ReactCrop'}
 				style={style}
 				onMouseDown={this.onComponentMouseDown}
+				onTouchStart={this.onComponentMouseDown}
 				tabIndex='0'>
 				<div ref={n => (this.mediaWrapperRef = n)}>
 					{renderComponent || (

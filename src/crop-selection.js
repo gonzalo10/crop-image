@@ -10,6 +10,10 @@ import {
 	SouthPoint,
 	SouthWestPoint,
 	CropSelectionWrapper,
+	DragBarOrdN,
+	DragBarOrdE,
+	DragBarOrdS,
+	DragBarOrdW,
 } from './styles';
 import { getClientPos, convertToPixelCrop } from './utils';
 
@@ -20,7 +24,6 @@ export const CreateCropSelection = ({
 	handleChangeSelection,
 	getElementOffset,
 	mediaDimensions,
-	mouseDownOnCropArea,
 }) => {
 	const refContainer = useRef(null);
 	const { disabled, locked, ruleOfThirds } = props;
@@ -78,10 +81,10 @@ export const CreateCropSelection = ({
 			tabIndex='0'>
 			{!disabled && !locked && (
 				<div>
-					<div className='ReactCrop__drag-bar ord-n' data-ord='n' />
-					<div className='ReactCrop__drag-bar ord-e' data-ord='e' />
-					<div className='ReactCrop__drag-bar ord-s' data-ord='s' />
-					<div className='ReactCrop__drag-bar ord-w' data-ord='w' />
+					<DragBarOrdN data-ord='n' />
+					<DragBarOrdE data-ord='e' />
+					<DragBarOrdS data-ord='s' />
+					<DragBarOrdW data-ord='w' />
 
 					<NorthWestPoint data-ord='nw' />
 					<NorthPoint data-ord='n' />
