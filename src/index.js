@@ -1,18 +1,17 @@
 import ReactDOM from 'react-dom';
 import React, { PureComponent } from 'react';
+import styled from 'styled-components';
 import ReactCrop from './image-crop';
 import './image-crop.css';
 
-import './App.css';
+const AppWrapper = styled.div`
+	font-family: sans-serif;
+	text-align: center;
+`;
 
 class App extends PureComponent {
 	state = {
 		src: null,
-		crop: {
-			// unit: '%',
-			// width: 30,
-			// aspect: 16 / 9,
-		},
 	};
 
 	onSelectFile = e => {
@@ -26,17 +25,11 @@ class App extends PureComponent {
 	};
 
 	// If you setState the crop in here you should return false.
-	onImageLoaded = e => {
-		this.imageRef = e.target;
-	};
+	onImageLoaded = e => (this.imageRef = e.target);
 
-	onCropComplete = crop => {
-		this.makeClientCrop(crop);
-	};
+	onCropComplete = crop => this.makeClientCrop(crop);
 
 	onCropChange = (crop, percentCrop) => {
-		// You could also use percentCrop:
-		// this.setState({ crop: percentCrop });
 		this.setState({ crop });
 	};
 
@@ -90,7 +83,7 @@ class App extends PureComponent {
 		const { crop, croppedImageUrl, src } = this.state;
 
 		return (
-			<div className='App'>
+			<AppWrapper>
 				<div>
 					<input type='file' accept='image/*' onChange={this.onSelectFile} />
 				</div>
@@ -107,7 +100,7 @@ class App extends PureComponent {
 				{croppedImageUrl && (
 					<img alt='Crop' style={{ maxWidth: '100%' }} src={croppedImageUrl} />
 				)}
-			</div>
+			</AppWrapper>
 		);
 	}
 }
