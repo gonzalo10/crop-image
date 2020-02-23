@@ -59,6 +59,8 @@ class ReactCrop extends PureComponent {
 		if (e.target !== componentEl || !componentEl.contains(e.target)) return;
 		if (disabled || locked || (keepSelection && isCropValid(crop))) return;
 
+		this.componentRef.focus({ preventScroll: true }); // All other browsers
+
 		e.preventDefault(); // Stop drag selection.
 
 		const clientPos = getClientPos(e);

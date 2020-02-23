@@ -38,6 +38,7 @@ export const CreateCropSelection = ({
 			return;
 		}
 		e.preventDefault(); // Stop drag selection.
+		refContainer.focus({ preventScroll: true });
 
 		const clientPos = getClientPos(e);
 
